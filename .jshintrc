@@ -1,0 +1,16 @@
+{
+    "indent": 4,
+    "nonbsp": true,
+    "quotmark": "single",
+    "latedef": true,
+    "freeze": true,
+    "eqeqeq": true,
+    "unused": true,
+    "undef": true,
+    "browser": true,
+    "node": true,
+    "esnext": true,
+    "mocha": true,
+    "loopfunc": true,
+    "latedef": false
+}
