@@ -10,20 +10,58 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _extendableBuiltin(cls) {
+    function ExtendableBuiltin() {
+        var instance = Reflect.construct(cls, Array.from(arguments));
+        Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
+        return instance;
+    }
+
+    ExtendableBuiltin.prototype = Object.create(cls.prototype, {
+        constructor: {
+            value: cls,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        }
+    });
+
+    if (Object.setPrototypeOf) {
+        Object.setPrototypeOf(ExtendableBuiltin, cls);
+    } else {
+        ExtendableBuiltin.__proto__ = cls;
+    }
+
+    return ExtendableBuiltin;
+}
+
 /**
 * Indicates that one or more parameter validation rules failed.
 *
 * @class
 */
-var ParameterValidationError = exports.ParameterValidationError = function ParameterValidationError(message) {
-    _classCallCheck(this, ParameterValidationError);
+var ParameterValidationError = exports.ParameterValidationError = function (_extendableBuiltin2) {
+    _inherits(ParameterValidationError, _extendableBuiltin2);
 
-    this.name = this.constructor.name;
-    this.message = message;
-    if (Error.captureStackTrace) {
-        Error.captureStackTrace(this, this.constructor.name);
+    function ParameterValidationError(message) {
+        _classCallCheck(this, ParameterValidationError);
+
+        var _this = _possibleConstructorReturn(this, (ParameterValidationError.__proto__ || Object.getPrototypeOf(ParameterValidationError)).call(this, message));
+
+        _this.name = _this.constructor.name;
+        _this.message = message;
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(_this, _this.constructor.name);
+        }
+        return _this;
     }
-};
+
+    return ParameterValidationError;
+}(_extendableBuiltin(Error));
 
 /**
 * Performs validation on parameters contained in an object.
@@ -190,14 +228,14 @@ var ParameterValidator = function () {
     }, {
         key: 'validateAsync',
         value: function validateAsync() {
-            var _this = this;
+            var _this2 = this;
 
             for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
                 args[_key] = arguments[_key];
             }
 
             return Promise.resolve().then(function () {
-                return _this.validate.apply(_this, args);
+                return _this2.validate.apply(_this2, args);
             });
         }
 
@@ -328,4 +366,11 @@ var ParameterValidator = function () {
     return ParameterValidator;
 }();
 
+// Also export `validate()` and `validateAsync` as standalone functions by creating a singleton instance.
+
 exports.default = ParameterValidator;
+var parameterValidator = new ParameterValidator();
+
+var validate = exports.validate = parameterValidator.validate.bind(parameterValidator);
+
+var validateAsync = exports.validateAsync = parameterValidator.validateAsync.bind(parameterValidator);

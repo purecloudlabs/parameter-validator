@@ -198,3 +198,11 @@ export default class ParameterValidator {
         return value !== undefined;
     }
 }
+
+// Also export `validate()` and `validateAsync` as standalone functions by creating a singleton instance.
+
+const parameterValidator = new ParameterValidator();
+
+export const validate = parameterValidator.validate.bind(parameterValidator);
+
+export const validateAsync = parameterValidator.validateAsync.bind(parameterValidator);
