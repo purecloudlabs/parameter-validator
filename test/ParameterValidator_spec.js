@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import ParameterValidator from '../src/ParameterValidator';
+import { ParameterValidationError } from '../src/ParameterValidator';
 
 describe('ParameterValidator', () => {
     let parameterValidator;
@@ -49,7 +50,7 @@ describe('ParameterValidator', () => {
                     parameterValidator.validate(animalNames, ['cat', 'dog', 'squirrel']);
                     throw new Error('validate() didn\'t throw an error like it was supposed to.');
                 } catch(error) {
-                    expect(error.constructor.name).to.equal('ParameterValidationError');
+                    expect(error).to.be.instanceof(ParameterValidationError);
                     expect(error.toString()).to.equal('ParameterValidationError: Invalid value of \'undefined\' was provided for parameter \'squirrel\'.');
                 }
             });
@@ -64,7 +65,7 @@ describe('ParameterValidator', () => {
                     parameterValidator.validate(animalNames, ['cat', 'dog', 'squirrel', 'kangaroo']);
                     throw new Error('validate() didn\'t throw an error like it was supposed to.');
                 } catch(error) {
-                    expect(error.constructor.name).to.equal('ParameterValidationError');
+                    expect(error).to.be.instanceof(ParameterValidationError);
                     expect(error.toString()).to.equal('ParameterValidationError: Invalid value of \'undefined\' was provided for parameter \'squirrel\'. ' +
                         'Invalid value of \'undefined\' was provided for parameter \'kangaroo\'.');
                 }
@@ -169,7 +170,7 @@ describe('ParameterValidator', () => {
                     parameterValidator.validate(animalNames, [['moose', 'kangaroo', 'mouse']]);
                     throw new Error('validate() didn\'t throw an error like it was supposed to.');
                 } catch(error) {
-                    expect(error.constructor.name).to.equal('ParameterValidationError');
+                    expect(error).to.be.instanceof(ParameterValidationError);
                     expect(error.toString()).to.equal('ParameterValidationError: One of the following parameters must be included: \'moose\', \'kangaroo\', \'mouse\'.');
                 }
             });
@@ -220,7 +221,7 @@ describe('ParameterValidator', () => {
                     parameterValidator.validate(animalNames, [{cat: catNameIsCool}]);
                     throw new Error('validate() didn\'t throw an error like it was supposed to.');
                 } catch(error) {
-                    expect(error.constructor.name).to.equal('ParameterValidationError');
+                    expect(error).to.be.instanceof(ParameterValidationError);
                     expect(error.toString()).to.equal('ParameterValidationError: Invalid value of \'Sylvester\' was provided for parameter \'cat\'.');
                 }
             });
@@ -281,7 +282,7 @@ describe('ParameterValidator', () => {
                         ['mouse', 'chicken', ['squirrel', 'moose'], {cat: catNameIsCool}, {dog: dogNameIsCool}]);
                     throw new Error('validate() didn\'t throw an error like it was supposed to.');
                 } catch(error) {
-                    expect(error.constructor.name).to.equal('ParameterValidationError');
+                    expect(error).to.be.instanceof(ParameterValidationError);
                     expect(error.toString()).to.equal(expectedErrorMessage);
                 }
             });
