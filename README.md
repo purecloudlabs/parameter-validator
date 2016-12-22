@@ -67,7 +67,7 @@ validate(params, [
 
 For convenience, `validate()` and `validateAsync()` are exported as standalone functions as shown above, but it's also possible to import and instantiate the `ParameterValidator` class that implements those methods.
 
-```
+```js
 import ParameterValidator from 'parameter-validator';
 
 let parameterValidator = new ParameterValidator();
@@ -77,6 +77,7 @@ parameterValidator.validateAsync(options, [ 'firstName', 'lastName' ])
 .then(({ firstName, lastName }) => {
    ...
 });
+```
 
 ### Parameters for `validate` and `validateAsync`
 
