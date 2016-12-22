@@ -1,6 +1,6 @@
 # Parameter Validator
 
-Parameter validator makes it easy to verify that an object contains required, valid parameters.
+Parameter-validator makes it easy to verify that a JavaScript object contains required, valid parameters.
 
 ## Examples
 
