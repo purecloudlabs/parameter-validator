@@ -1,23 +1,21 @@
 # Parameter Validator
 
-Parameter validator makes it easy to verify that an object of parameters passed to a function contains required parameters.
+Parameter validator makes it easy to verify that an object contains required, valid parameters.
 
 ## Examples
 
 ### Basic Examples
 
 ```js
-import ParameterValidator from 'parameter-validator'
-import { ParameterValidationError } from 'parameter-validator';
+import { validate, ParameterValidationError } from 'parameter-validator';
 
 let params = { name: 'Paula PureCloud', id: 'user1' };
 
-let parameterValidator = new ParameterValidator();
-let { name, id } = parameterValidator.validate(params, [ 'name', 'id' ]);
+let { name, id } = validate(params, [ 'name', 'id' ]);
 // parameters exist, so no error is thrown
 
 try {
-    let { age } = parameterValidator.validate(params, [ 'age' ]);
+    let { age } = validate(params, [ 'age' ]);
 } catch (error) {
     if (error instanceof ParameterValidationError) {
         console.log(error.message);
@@ -31,7 +29,9 @@ try {
 To ensure that the any errors thrown are wrapped in a Promise, use the async version:
 
 ```js
-parameterValidator.validateAsync(params, [ 'price', 'quantity' ])
+import { validateAsync, ParameterValidationError } from 'parameterValidator';
+
+validateAsync(params, [ 'price', 'quantity' ])
 .then(({ price, quantity }) => {
 
     console.log(`Price: ${price}, Quantity: ${quantity}`) ;
@@ -50,12 +50,12 @@ parameterValidator.validateAsync(params, [ 'price', 'quantity' ])
 
 Other types of validation:
 
-* specify that at least one of a group of parameters must be included by placing those together within a nested array (either `username` or `email` must be specified in the example below)
+* You can specify that at least one of a group of parameters must be included by placing those properties together within a nested array (either `username` or `email` must be specified in the example below)
 
-* provide a specific validation function for a parameter by providing it in an object
+* You can provide a specific validation function for a parameter by providing it in an object
 
 ```js
-this.parameterValidator.validate(params, [
+validate(params, [
     'firstName',
     'lastName',
     [ 'username', 'email' ],
@@ -63,7 +63,22 @@ this.parameterValidator.validate(params, [
 ]);
 ```
 
-### Parameters
+### ParameterValidator class
+
+For convenience, `validate()` and `validateAsync()` are exported as standalone functions as shown above, but it's also possible to import and instantiate the `ParameterValidator` class that implements those methods.
+
+```
+import ParameterValidator from 'parameter-validator';
+
+let parameterValidator = new ParameterValidator();
+let { firstName, lastName } = parameterValidator.validate(options, [ 'firstName', 'lastName' ]);
+// or
+parameterValidator.validateAsync(options, [ 'firstName', 'lastName' ])
+.then(({ firstName, lastName }) => {
+   ...
+});
+
+### Parameters for `validate` and `validateAsync`
 
 ```
 param:   {Object}    paramsProvided    - The names and values of provided parameters
@@ -86,5 +101,21 @@ throws:  {ParameterValidationError}    - Indicates that one or more parameter va
 ```
 
 
-## Running Tests
+## Development
+
+The module is implemented in ES 6 (located in the src directory) but has been transpiled to ES 5 using Babel (located in the dist directory). The package.json file specifies the dist directory for the module's entry point, so the transpiled code will be used automatically.
+
+### Building
+
+```
+npm run build
+```
+
+There's also a git pre-commit hook that automatically builds upon commit, since the dist directory is committed.
+
+### Running tests
+
+```
+npm test
+```
 
