@@ -67,13 +67,20 @@ export default class ParameterValidator {
     validate(paramsProvided, paramRequirements, extractedParams = {}, options = {}) {
         if (!paramsProvided) {
         	// If only I could use the ParameterValidator here...
-            throw new ParameterValidationError(`A paramsProvided object is required.`);
+            throw new ParameterValidationError(`A params object is required.`);
         }
 
-        if (!Array.isArray(paramRequirements)) { throw new Error('paramRequirements must be an array.'); }
+        if (!Array.isArray(paramRequirements)) {
+            throw new Error('paramRequirements must be an array.');
+        }
 
-        let errors = [],
-            prefix = options.addPrefix || ''; // Optional prefix to be added to each parameter name.
+        let prefix = options.addPrefix || ''; // Optional prefix to be added to each parameter name.
+
+        if (typeof prefix !== 'string') {
+            throw new Error('addPrefix option must be a string if provided.');
+        }
+
+        let errors = [];
 
         for (let paramRequirement of paramRequirements) {
         	if (Array.isArray(paramRequirement) && paramRequirement.length) {

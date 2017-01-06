@@ -129,15 +129,20 @@ var ParameterValidator = function () {
 
             if (!paramsProvided) {
                 // If only I could use the ParameterValidator here...
-                throw new ParameterValidationError('A paramsProvided object is required.');
+                throw new ParameterValidationError('A params object is required.');
             }
 
             if (!Array.isArray(paramRequirements)) {
                 throw new Error('paramRequirements must be an array.');
             }
 
-            var errors = [],
-                prefix = options.addPrefix || ''; // Optional prefix to be added to each parameter name.
+            var prefix = options.addPrefix || ''; // Optional prefix to be added to each parameter name.
+
+            if (typeof prefix !== 'string') {
+                throw new Error('addPrefix option must be a string if provided.');
+            }
+
+            var errors = [];
 
             var _iteratorNormalCompletion = true;
             var _didIteratorError = false;

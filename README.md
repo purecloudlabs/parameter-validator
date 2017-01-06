@@ -29,7 +29,7 @@ try {
 To ensure that the any errors thrown are wrapped in a Promise, use the async version:
 
 ```js
-import { validateAsync, ParameterValidationError } from 'parameterValidator';
+import { validateAsync, ParameterValidationError } from 'parameter-validator';
 
 validateAsync(params, [ 'price', 'quantity' ])
 .then(({ price, quantity }) => {
