@@ -72,7 +72,7 @@ validate(params, [
 validate(params, [ 'logger', 'username' ], this);
 ```
 
-#### Adding a prefix to param names
+##### Adding a prefix to param names
 
 ```js
 // Sets `this._logger` and `this._username`
@@ -116,7 +116,7 @@ param:   {Object}  [extractedParams]   - This method returns an object containin
                                          extractedParams object. This is useful, for example, for prefixing property names with an underscore
                                          to indicate that they're private properties.
 
-returns: {Object}    extractedParams   - The names and values of the validated parameters extracted.
+returns: {Object}  extractedParams     - The names and values of the validated parameters extracted.
 
 throws:  {ParameterValidationError}    - Indicates that one or more parameter validation rules failed. The error message identifies the names and
                                          values of each invalid parameter.
