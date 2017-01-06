@@ -52,6 +52,10 @@ export default class ParameterValidator {
     *                                           method to add the extracted params to an existing object (such as the class instance that internally
     *                                           invokes this method), you can supply that object as the extractedParams parameter.
     *
+    * @param    {Object}    [options] - Additional options
+    * @param    {string}    [options.addPrefix] - Specifies a prefix that will be added to each param name before it's assigned to the
+    *                                             extractedParams object. This is useful, for example, for prefixing property names with an underscore
+    *                                             to indicate that they're private properties.
     * @returns  {Object}    extractedParams - The names and values of the validated parameters extracted.
     *
     * @throws   {ParameterValidationError} Indicates that one or more parameter validation rules failed.
@@ -60,22 +64,30 @@ export default class ParameterValidator {
     * let parameterValidator = new ParameterValidator();
 	* parameterValidator.validate(params, ['requiredParam0', 'requiredParam1', ['eitherNeedThis', 'orThat'], {param3: (val) => val > 30}]);
 	*/
-    validate(paramsProvided, paramRequirements, extractedParams = {}) {
+    validate(paramsProvided, paramRequirements, extractedParams = {}, options = {}) {
         if (!paramsProvided) {
         	// If only I could use the ParameterValidator here...
-            throw new ParameterValidationError(`A paramsProvided object is required.`);
+            throw new ParameterValidationError(`A params object is required.`);
         }
 
-        if (!Array.isArray(paramRequirements)) { throw new Error('paramRequirements must be an array.'); }
+        if (!Array.isArray(paramRequirements)) {
+            throw new Error('paramRequirements must be an array.');
+        }
 
-        var errors = [];
+        let prefix = options.addPrefix || ''; // Optional prefix to be added to each parameter name.
 
-        for (var paramRequirement of paramRequirements) {
+        if (typeof prefix !== 'string') {
+            throw new Error('addPrefix option must be a string if provided.');
+        }
+
+        let errors = [];
+
+        for (let paramRequirement of paramRequirements) {
         	if (Array.isArray(paramRequirement) && paramRequirement.length) {
 
                 let validationResult = this._performLogicalOrParamValidation(paramsProvided, paramRequirement);
-                Object.assign(extractedParams, validationResult.params);
-        		errors.push.apply(errors, validationResult.errors);
+                this._assignProperties(extractedParams, validationResult.params, prefix);
+        		errors.push(...validationResult.errors);
 
         	} else if ((typeof paramRequirement === 'object') && Object.keys(paramRequirement)) {
 				// paramRequirement is an object with one key where the key is the parameter's name
@@ -84,16 +96,15 @@ export default class ParameterValidator {
                     validationFunction = paramRequirement[paramName],
                     validationResult = this._executeValidationFunction(paramsProvided, paramName, validationFunction);
 
-                Object.assign(extractedParams, validationResult.params);
-                Object.assign(extractedParams, validationResult.params);
-                errors = errors.concat(validationResult.errors);
+                this._assignProperties(extractedParams, validationResult.params, prefix);
+                errors.push(...validationResult.errors);
 
         	} else if ((typeof paramRequirement === 'string') && paramRequirement) {
         		// paramRequirement is a string specifying the name of a required parameter,
         		// So use the default validation function for validation.
                 let validationResult = this._executeValidationFunction(paramsProvided, paramRequirement, this.defaultValidation);
-                Object.assign(extractedParams, validationResult.params);
-                errors = errors.concat(validationResult.errors);
+                this._assignProperties(extractedParams, validationResult.params, prefix);
+                errors.push(...validationResult.errors);
         	}
         }
 
@@ -133,6 +144,20 @@ export default class ParameterValidator {
     */
     get defaultValidation() {
         return this._defaultValidation || this.isDefined;
+    }
+
+    /**
+    * Like Object.assign(), but with the ability to add an optional prefix to the property names.
+    *
+    * @param {Object} targetObject
+    * @param {Object} propertiesToAdd
+    * @param {string} [prefix]
+    */
+    _assignProperties(targetObject, propertiesToAdd, prefix = '') {
+
+        for (let propertyName in propertiesToAdd) {
+            targetObject[prefix + propertyName] = propertiesToAdd[propertyName];
+        }
     }
 
     /*

@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect, fail } from 'chai';
 import sinon from 'sinon';
 import ParameterValidator from '../src/ParameterValidator';
 import { ParameterValidationError } from '../src/ParameterValidator';
@@ -198,7 +198,7 @@ describe('ParameterValidator', () => {
             });
         });
 
-        describe('execution of a cusJerry validation function', () => {
+        describe('execution of a custom validation function', () => {
             it('should return a parameter specified if it passes validation', () => {
                 var animalNames = {
                     cat: 'Garfield',
@@ -211,7 +211,7 @@ describe('ParameterValidator', () => {
                 expect(extractedParams).to.deep.equal({cat: 'Garfield'});
             });
 
-            it('should throw a ParameterValidationError if a cusJerry validation function determines a parameter is invalid', () => {
+            it('should throw a ParameterValidationError if a custom validation function determines a parameter is invalid', () => {
                 var animalNames = {
                     cat: 'Sylvester',
                     dog: 'Jake'
@@ -305,6 +305,42 @@ describe('ParameterValidator', () => {
 
                 expect(extractedParams).to.deep.equal(expectedUpdatedExistingParams);
                 expect(existingParams).to.deep.equal(expectedUpdatedExistingParams);
+            });
+        });
+
+        describe('addPrefix option', () => {
+
+            let animalNames,
+                accumulator;
+
+            beforeEach(() => {
+
+                animalNames = {
+                    dog: 'Scooby',
+                    bear: 'Yogi',
+                    penguin: 'Tux'
+                };
+
+                accumulator = {};
+            });
+
+            it(`throws an error when a value is provided that's not a string`, () => {
+
+                try {
+                    parameterValidator.validate(animalNames, [ 'penguin', 'bear' ], accumulator, { addPrefix: 4 });
+                    fail();
+                } catch (error) {
+                    expect(error).to.be.instanceof(Error);
+                }
+            });
+
+            it('adds a given string prefix to the validated properties it extracts', () => {
+
+                parameterValidator.validate(animalNames, [ 'penguin', 'bear' ], accumulator, { addPrefix: '_' });
+                expect(accumulator).to.deep.equal({
+                    _penguin: 'Tux',
+                    _bear: 'Yogi'
+                });
             });
         });
     });

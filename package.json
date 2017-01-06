@@ -1,11 +1,11 @@
 {
   "name": "parameter-validator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Parameter validator makes it easy to verify that an object contains required, valid parameters.",
   "keywords": [ "parameter", "validator", "validate", "verify", "assert", "object", "param", "property", "properties", "function", "required" ],
   "main": "dist/ParameterValidator.js",
   "scripts": {
-    "lint": "jshint src",
+    "lint": "jshint src && jshint test",
     "build": "npm run lint && rm -rf dist && babel src --out-dir dist",
     "test": "mocha --compilers js:babel-core/register"
   },

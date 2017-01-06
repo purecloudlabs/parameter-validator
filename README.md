@@ -29,7 +29,7 @@ try {
 To ensure that the any errors thrown are wrapped in a Promise, use the async version:
 
 ```js
-import { validateAsync, ParameterValidationError } from 'parameterValidator';
+import { validateAsync, ParameterValidationError } from 'parameter-validator';
 
 validateAsync(params, [ 'price', 'quantity' ])
 .then(({ price, quantity }) => {
@@ -46,9 +46,9 @@ validateAsync(params, [ 'price', 'quantity' ])
 });
 ```
 
-### Advanced Example
+### Advanced usage
 
-Other types of validation:
+#### Other types of validation
 
 * You can specify that at least one of a group of parameters must be included by placing those properties together within a nested array (either `username` or `email` must be specified in the example below)
 
@@ -61,6 +61,22 @@ validate(params, [
     [ 'username', 'email' ],
     { age: val => val > 30 }
 ]);
+```
+
+#### Optional parameters
+
+##### Passing in an object to which the extracted parameters will be assigned.
+
+```js
+// Sets `this.logger` and `this.username`
+validate(params, [ 'logger', 'username' ], this);
+```
+
+##### Adding a prefix to param names
+
+```js
+// Sets `this._logger` and `this._username`
+validate(params, [ 'logger', 'username' ], this, { addPrefix: '_' });
 ```
 
 ### ParameterValidator class
@@ -82,20 +98,25 @@ parameterValidator.validateAsync(options, [ 'firstName', 'lastName' ])
 ### Parameters for `validate` and `validateAsync`
 
 ```
-param:   {Object}    paramsProvided    - The names and values of provided parameters
-param:   {Array}     paramRequirements - Each item in this array is interpretted in order as a validation rule.
+param:   {Object}  paramsProvided      - The names and values of provided parameters
+param:   {Array}   paramRequirements   - Each item in this array is interpretted in order as a validation rule.
                                        - If an item is a string, it's interpretted as the name of a parameter that must be contained in paramsProvided.
                                        - If an item is an Array, it's interpretted as an array of parameter names where at least one of the
                                          parameters in the Array must be in paramsProvided.
                                        - If an item is an Object, it's assumed that the object's only key is the name of a parameter to be validated
                                          and its corresponding value is a function that returns true if that parameter's value in paramsProvided is
                                          valid.
-param:   {Object}    [extractedParams] - This method returns an object containing the names and values of the validated parameters extracted.
+param:   {Object}  [extractedParams]   - This method returns an object containing the names and values of the validated parameters extracted.
                                          By default, it creates a new object and assigns the extracted parameters to it, but if you want this
                                          method to add the extracted params to an existing object (such as the class instance that internally
                                          invokes this method), you can optionally supply that object as the extractedParams parameter.
 
-returns: {Object}    extractedParams   - The names and values of the validated parameters extracted.
+param:   {Object}  [options]           - Object of additional options.
+param:   {string}  [options.addPrefix] - Specifies a prefix that will be added to each param name before it's assigned to the
+                                         extractedParams object. This is useful, for example, for prefixing property names with an underscore
+                                         to indicate that they're private properties.
+
+returns: {Object}  extractedParams     - The names and values of the validated parameters extracted.
 
 throws:  {ParameterValidationError}    - Indicates that one or more parameter validation rules failed. The error message identifies the names and
                                          values of each invalid parameter.
