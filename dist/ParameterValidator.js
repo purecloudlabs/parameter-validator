@@ -8,6 +8,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -105,6 +107,10 @@ var ParameterValidator = function () {
        *                                           method to add the extracted params to an existing object (such as the class instance that internally
        *                                           invokes this method), you can supply that object as the extractedParams parameter.
        *
+       * @param    {Object}    [options] - Additional options
+       * @param    {string}    [options.addPrefix] - Specifies a prefix that will be added to each param name before it's assigned to the
+       *                                             extractedParams object. This is useful, for example, for prefixing property names with an underscore
+       *                                             to indicate that they're private properties.
        * @returns  {Object}    extractedParams - The names and values of the validated parameters extracted.
        *
        * @throws   {ParameterValidationError} Indicates that one or more parameter validation rules failed.
@@ -119,6 +125,7 @@ var ParameterValidator = function () {
         key: 'validate',
         value: function validate(paramsProvided, paramRequirements) {
             var extractedParams = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+            var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
             if (!paramsProvided) {
                 // If only I could use the ParameterValidator here...
@@ -129,7 +136,8 @@ var ParameterValidator = function () {
                 throw new Error('paramRequirements must be an array.');
             }
 
-            var errors = [];
+            var errors = [],
+                prefix = options.addPrefix || ''; // Optional prefix to be added to each parameter name.
 
             var _iteratorNormalCompletion = true;
             var _didIteratorError = false;
@@ -142,8 +150,8 @@ var ParameterValidator = function () {
                     if (Array.isArray(paramRequirement) && paramRequirement.length) {
 
                         var validationResult = this._performLogicalOrParamValidation(paramsProvided, paramRequirement);
-                        Object.assign(extractedParams, validationResult.params);
-                        errors.push.apply(errors, validationResult.errors);
+                        this._assignProperties(extractedParams, validationResult.params, prefix);
+                        errors.push.apply(errors, _toConsumableArray(validationResult.errors));
                     } else if ((typeof paramRequirement === 'undefined' ? 'undefined' : _typeof(paramRequirement)) === 'object' && Object.keys(paramRequirement)) {
                         // paramRequirement is an object with one key where the key is the parameter's name
                         // and the value is a validation function that returns true if the value is valid.
@@ -151,15 +159,14 @@ var ParameterValidator = function () {
                             validationFunction = paramRequirement[paramName],
                             _validationResult = this._executeValidationFunction(paramsProvided, paramName, validationFunction);
 
-                        Object.assign(extractedParams, _validationResult.params);
-                        Object.assign(extractedParams, _validationResult.params);
-                        errors = errors.concat(_validationResult.errors);
+                        this._assignProperties(extractedParams, _validationResult.params, prefix);
+                        errors.push.apply(errors, _toConsumableArray(_validationResult.errors));
                     } else if (typeof paramRequirement === 'string' && paramRequirement) {
                         // paramRequirement is a string specifying the name of a required parameter,
                         // So use the default validation function for validation.
                         var _validationResult2 = this._executeValidationFunction(paramsProvided, paramRequirement, this.defaultValidation);
-                        Object.assign(extractedParams, _validationResult2.params);
-                        errors = errors.concat(_validationResult2.errors);
+                        this._assignProperties(extractedParams, _validationResult2.params, prefix);
+                        errors.push.apply(errors, _toConsumableArray(_validationResult2.errors));
                     }
                 }
             } catch (err) {
@@ -244,8 +251,24 @@ var ParameterValidator = function () {
         */
 
     }, {
-        key: '_performLogicalOrParamValidation',
+        key: '_assignProperties',
 
+
+        /**
+        * Like Object.assign(), but with the ability to add an optional prefix to the property names.
+        *
+        * @param {Object} targetObject
+        * @param {Object} propertiesToAdd
+        * @param {string} [prefix]
+        */
+        value: function _assignProperties(targetObject, propertiesToAdd) {
+            var prefix = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+
+            for (var propertyName in propertiesToAdd) {
+                targetObject[prefix + propertyName] = propertiesToAdd[propertyName];
+            }
+        }
 
         /*
         * @param 	{Object} 	paramsProvided - The names and values of provided parameters
@@ -253,6 +276,9 @@ var ParameterValidator = function () {
         * @returns 	{Array} 	errors - Error message strings
         * @returns  {Object}    params - Extracted parameter names & values.
         */
+
+    }, {
+        key: '_performLogicalOrParamValidation',
         value: function _performLogicalOrParamValidation(paramsProvided, paramNames) {
             var extractedParams = {},
                 errors = [],
