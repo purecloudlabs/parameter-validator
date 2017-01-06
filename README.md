@@ -111,8 +111,8 @@ param:   {Object}  [extractedParams]   - This method returns an object containin
                                          method to add the extracted params to an existing object (such as the class instance that internally
                                          invokes this method), you can optionally supply that object as the extractedParams parameter.
 
- param:  {Object}  [options]           - Object of additional options.
- param:  {string}  [options.addPrefix] - Specifies a prefix that will be added to each param name before it's assigned to the
+param:   {Object}  [options]           - Object of additional options.
+param:   {string}  [options.addPrefix] - Specifies a prefix that will be added to each param name before it's assigned to the
                                          extractedParams object. This is useful, for example, for prefixing property names with an underscore
                                          to indicate that they're private properties.
 
