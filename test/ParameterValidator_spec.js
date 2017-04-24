@@ -247,6 +247,22 @@ describe('ParameterValidator', () => {
                 expect(extractedParams).to.deep.equal(expectedUpdatedExistingParams);
                 expect(existingParams).to.deep.equal(expectedUpdatedExistingParams);
             });
+
+            it('should add extracted parameters to a new object if null is supplied as the extractedParams parameter', () => {
+                var animalNames = {
+                    cat: 'Garfield',
+                    dog: 'Beethoven',
+                    squirrel: 'Rocky'
+                };
+
+                var expectedExtractedParams = cloneDeep(animalNames);
+                delete expectedExtractedParams.squirrel;
+
+                var extractedParams =  parameterValidator.validate(animalNames, [{cat: catNameIsCool}, {dog: dogNameIsCool}], null);
+
+                expect(extractedParams).to.deep.equal(expectedExtractedParams);
+                expect(extractedParams).to.deep.equal(expectedExtractedParams);
+            });
         });
 
         describe('combining different types of validation', () => {
@@ -341,6 +357,32 @@ describe('ParameterValidator', () => {
                     _penguin: 'Tux',
                     _bear: 'Yogi'
                 });
+            });
+        });
+
+        describe('errorClass option', () => {
+
+            it('allows a different Error subclass to be used instead of ParameterValidationError', () => {
+
+                class CustomValidationError extends Error {
+                    constructor(message) {
+                        super(message);
+                        this.name = this.constructor.name;
+                        this.message = message;
+                        if (Error.captureStackTrace) {
+                            Error.captureStackTrace(this, this.constructor.name);
+                        }
+                    }
+                }
+                let lilBub = { type: 'cat' };
+
+                try {
+                    parameterValidator.validate(lilBub, [ 'type', 'interests' ], null, { errorClass: CustomValidationError });
+                    expect(`failing the test because an error wasn't thrown`).to.equal(true);
+                } catch (error) {
+                    expect(error).to.be.instanceof(CustomValidationError);
+                    expect(error.message).to.include('interests');
+                }
             });
         });
     });
