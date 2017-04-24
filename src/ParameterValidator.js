@@ -95,16 +95,17 @@ export default class ParameterValidator {
                 this._assignProperties(extractedParams, validationResult.params, prefix);
         		errors.push(...validationResult.errors);
 
-        	} else if ((typeof paramRequirement === 'object') && Object.keys(paramRequirement)) {
-				// paramRequirement is an object with one key where the key is the parameter's name
-				// and the value is a validation function that returns true if the value is valid.
-                let paramName = Object.keys(paramRequirement)[0],
-                    validationFunction = paramRequirement[paramName],
-                    validationResult = this._executeValidationFunction(paramsProvided, paramName, validationFunction);
+        	} else if (typeof paramRequirement === 'object') {
+				// paramRequirement is an object with one or more keys where each key is a parameter's name
+				// and its value is a validation function that returns true if the value is valid.
+                for (let paramName in paramRequirement) {
 
-                this._assignProperties(extractedParams, validationResult.params, prefix);
-                errors.push(...validationResult.errors);
+                    let validationFunction = paramRequirement[paramName],
+                        validationResult = this._executeValidationFunction(paramsProvided, paramName, validationFunction);
 
+                    this._assignProperties(extractedParams, validationResult.params, prefix);
+                    errors.push(...validationResult.errors);
+                }
         	} else if ((typeof paramRequirement === 'string') && paramRequirement) {
         		// paramRequirement is a string specifying the name of a required parameter,
         		// So use the default validation function for validation.

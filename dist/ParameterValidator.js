@@ -162,15 +162,17 @@ var ParameterValidator = function () {
                         var validationResult = this._performLogicalOrParamValidation(paramsProvided, paramRequirement);
                         this._assignProperties(extractedParams, validationResult.params, prefix);
                         errors.push.apply(errors, _toConsumableArray(validationResult.errors));
-                    } else if ((typeof paramRequirement === 'undefined' ? 'undefined' : _typeof(paramRequirement)) === 'object' && Object.keys(paramRequirement)) {
-                        // paramRequirement is an object with one key where the key is the parameter's name
-                        // and the value is a validation function that returns true if the value is valid.
-                        var paramName = Object.keys(paramRequirement)[0],
-                            validationFunction = paramRequirement[paramName],
-                            _validationResult = this._executeValidationFunction(paramsProvided, paramName, validationFunction);
+                    } else if ((typeof paramRequirement === 'undefined' ? 'undefined' : _typeof(paramRequirement)) === 'object') {
+                        // paramRequirement is an object with one or more keys where each key is a parameter's name
+                        // and its value is a validation function that returns true if the value is valid.
+                        for (var paramName in paramRequirement) {
 
-                        this._assignProperties(extractedParams, _validationResult.params, prefix);
-                        errors.push.apply(errors, _toConsumableArray(_validationResult.errors));
+                            var validationFunction = paramRequirement[paramName],
+                                _validationResult = this._executeValidationFunction(paramsProvided, paramName, validationFunction);
+
+                            this._assignProperties(extractedParams, _validationResult.params, prefix);
+                            errors.push.apply(errors, _toConsumableArray(_validationResult.errors));
+                        }
                     } else if (typeof paramRequirement === 'string' && paramRequirement) {
                         // paramRequirement is a string specifying the name of a required parameter,
                         // So use the default validation function for validation.

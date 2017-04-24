@@ -198,27 +198,33 @@ describe('ParameterValidator', () => {
             });
         });
 
-        describe('execution of a custom validation function', () => {
-            it('should return a parameter specified if it passes validation', () => {
+        describe('execution of custom validation functions', () => {
+            it('should return the parameters specified if they passes validation', () => {
                 var animalNames = {
                     cat: 'Garfield',
                     dog: 'Jake',
                     squirrel: 'Rocky'
                 };
 
-                var extractedParams =  parameterValidator.validate(animalNames, [{cat: catNameIsCool}]);
+                var extractedParams =  parameterValidator.validate(animalNames, [{
+                    cat: catNameIsCool,
+                    dog: name => name !== 'Beethoven'
+                }]);
 
-                expect(extractedParams).to.deep.equal({cat: 'Garfield'});
+                expect(extractedParams).to.deep.equal({ cat: 'Garfield', dog: 'Jake' });
             });
 
-            it('should throw a ParameterValidationError if a custom validation function determines a parameter is invalid', () => {
+            it('should throw a ParameterValidationError if a custom validation function determines one parameter is invalid', () => {
                 var animalNames = {
                     cat: 'Sylvester',
                     dog: 'Jake'
                 };
 
                 try {
-                    parameterValidator.validate(animalNames, [{cat: catNameIsCool}]);
+                    parameterValidator.validate(animalNames, [{
+                        cat: catNameIsCool,
+                        dog: name => [ 'Jake', 'Lassie' ].includes(name)
+                    }]);
                     throw new Error('validate() didn\'t throw an error like it was supposed to.');
                 } catch(error) {
                     expect(error).to.be.instanceof(ParameterValidationError);
@@ -226,6 +232,26 @@ describe('ParameterValidator', () => {
                 }
             });
 
+            it('should throw a ParameterValidationError if a custom validation function determines multiple parameters are invalid', () => {
+                var animalNames = {
+                    cat: 'Sylvester',
+                    dog: 'Jake'
+                };
+
+                try {
+                    parameterValidator.validate(animalNames, [{
+                        cat: catNameIsCool,
+                        dog: name => [ 'Clifford', 'Lassie' ].includes(name)
+                    }]);
+                    throw new Error(`validate() didn't throw an error like it was supposed to.`);
+                } catch(error) {
+                    expect(error).to.be.instanceof(ParameterValidationError);
+
+                    let expectedMessage = `ParameterValidationError: Invalid value of 'Sylvester' was provided for parameter 'cat'. ` +
+                                          `Invalid value of 'Jake' was provided for parameter 'dog'.`;
+                    expect(error.toString()).to.equal(expectedMessage);
+                }
+            });
 
             it('should add extracted parameters to an existing object if one is supplied as the extractedParams parameter', () => {
                 var animalNames = {
