@@ -102,15 +102,17 @@ var ParameterValidator = function () {
        *								- If an item is an Object, it's assumed that the object's only key is the name of a parameter to be validated
        *								 and its corresponding value is a function that returns true if that parameter's value in paramsProvided is
        *								 valid.
-       * @param    {Object}    [extractedParams] - This method returns an object containing the names and values of the validated parameters extracted.
-       *                                           By default, it creates a new object and assigns the extracted parameters to it, but if you want this
-       *                                           method to add the extracted params to an existing object (such as the class instance that internally
-       *                                           invokes this method), you can supply that object as the extractedParams parameter.
+       * @param    {Object|null} [extractedParams] - This method returns an object containing the names and values of the validated parameters extracted.
+       *                                             By default, it creates a new object and assigns the extracted parameters to it, but if you want this
+       *                                             method to add the extracted params to an existing object (such as the class instance that internally
+       *                                             invokes this method), you can supply that object as the extractedParams parameter.
        *
        * @param    {Object}    [options] - Additional options
        * @param    {string}    [options.addPrefix] - Specifies a prefix that will be added to each param name before it's assigned to the
        *                                             extractedParams object. This is useful, for example, for prefixing property names with an underscore
        *                                             to indicate that they're private properties.
+       * @param    {class}     [options.errorClass] - Specifies a specific `Error` subclass to throw instead of the default `ParameterValidationError
+       *                                              when invalid parameters are detected.
        * @returns  {Object}    extractedParams - The names and values of the validated parameters extracted.
        *
        * @throws   {ParameterValidationError} Indicates that one or more parameter validation rules failed.
@@ -123,13 +125,16 @@ var ParameterValidator = function () {
 
     _createClass(ParameterValidator, [{
         key: 'validate',
-        value: function validate(paramsProvided, paramRequirements) {
-            var extractedParams = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+        value: function validate(paramsProvided, paramRequirements, extractedParams) {
             var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+
+            extractedParams = this._getExtractedParamsObject(extractedParams);
+            var ValidationErrorSubclass = this._getValidationErrorSubclass(options);
 
             if (!paramsProvided) {
                 // If only I could use the ParameterValidator here...
-                throw new ParameterValidationError('A params object is required.');
+                throw new ValidationErrorSubclass('A params object is required.');
             }
 
             if (!Array.isArray(paramRequirements)) {
@@ -157,15 +162,17 @@ var ParameterValidator = function () {
                         var validationResult = this._performLogicalOrParamValidation(paramsProvided, paramRequirement);
                         this._assignProperties(extractedParams, validationResult.params, prefix);
                         errors.push.apply(errors, _toConsumableArray(validationResult.errors));
-                    } else if ((typeof paramRequirement === 'undefined' ? 'undefined' : _typeof(paramRequirement)) === 'object' && Object.keys(paramRequirement)) {
-                        // paramRequirement is an object with one key where the key is the parameter's name
-                        // and the value is a validation function that returns true if the value is valid.
-                        var paramName = Object.keys(paramRequirement)[0],
-                            validationFunction = paramRequirement[paramName],
-                            _validationResult = this._executeValidationFunction(paramsProvided, paramName, validationFunction);
+                    } else if ((typeof paramRequirement === 'undefined' ? 'undefined' : _typeof(paramRequirement)) === 'object') {
+                        // paramRequirement is an object with one or more keys where each key is a parameter's name
+                        // and its value is a validation function that returns true if the value is valid.
+                        for (var paramName in paramRequirement) {
 
-                        this._assignProperties(extractedParams, _validationResult.params, prefix);
-                        errors.push.apply(errors, _toConsumableArray(_validationResult.errors));
+                            var validationFunction = paramRequirement[paramName],
+                                _validationResult = this._executeValidationFunction(paramsProvided, paramName, validationFunction);
+
+                            this._assignProperties(extractedParams, _validationResult.params, prefix);
+                            errors.push.apply(errors, _toConsumableArray(_validationResult.errors));
+                        }
                     } else if (typeof paramRequirement === 'string' && paramRequirement) {
                         // paramRequirement is a string specifying the name of a required parameter,
                         // So use the default validation function for validation.
@@ -219,7 +226,7 @@ var ParameterValidator = function () {
 
                 errorMessage = errorMessage.slice(0, -1);
 
-                throw new ParameterValidationError(errorMessage);
+                throw new ValidationErrorSubclass(errorMessage);
             }
 
             return extractedParams;
@@ -273,6 +280,58 @@ var ParameterValidator = function () {
             for (var propertyName in propertiesToAdd) {
                 targetObject[prefix + propertyName] = propertiesToAdd[propertyName];
             }
+        }
+
+        /**
+        * Determines the correct object to use for extractedParams based on what the client provided.
+        *
+        * @param   {Object|Function|null|undefined} - extractedParams argument provided to `validate()`
+        * @returns {Object|Function}
+        * @private
+        */
+
+    }, {
+        key: '_getExtractedParamsObject',
+        value: function _getExtractedParamsObject(extractedParams) {
+
+            if ([null, undefined].includes(extractedParams)) {
+                // The client either didn't provide an extractedParams argument or explicitly set
+                // it to null, so just use a new object.
+                return {};
+            }
+
+            if (['object', 'function'].includes(typeof extractedParams === 'undefined' ? 'undefined' : _typeof(extractedParams))) {
+                // The client provided an existing object or function on which we'll set the extracted params.
+                return extractedParams;
+            }
+
+            throw new Error('Invalid value of \'' + extractedParams + '\' was provided for the extractedParams parameter.');
+        }
+
+        /**
+        * Determines whether to use the default ParameterValidationError or a custom
+        * error subclass passed to `validate()`.
+        *
+        * @param   {options} [options] - options that were passed to `validate()`
+        * @param   {class}   [options.errorClass]
+        * @returns {class}
+        * @private
+        */
+
+    }, {
+        key: '_getValidationErrorSubclass',
+        value: function _getValidationErrorSubclass(options) {
+
+            if ((typeof options === 'undefined' ? 'undefined' : _typeof(options)) !== 'object' || options.errorClass === undefined) {
+                return ParameterValidationError;
+            }
+            var errorClass = options.errorClass;
+            // Verify that errorClass is Error or an Error subclass.
+
+            if (errorClass === Error || errorClass.prototype instanceof Error) {
+                return errorClass;
+            }
+            throw new Error('The errorClass provided was of type ' + (typeof errorClass === 'undefined' ? 'undefined' : _typeof(errorClass)) + ' and was not an Error subclass.');
         }
 
         /*
