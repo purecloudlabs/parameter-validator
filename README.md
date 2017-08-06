@@ -124,6 +124,37 @@ throws:  {ParameterValidationError}          - Indicates that one or more parame
                                                values of each invalid parameter.
 ```
 
+## Installation
+
+```
+npm install parameter-validator --save
+```
+
+This module ships with two different builds: one for the CommonJS module spec and one for the AMD module spec. The CommonJS module is specified as the default entry point, so you can import the module as expected in Node.js without any additional work.
+
+### Installation in Ember.js
+
+Ember.js uses the AMD module system, and a couple of extra steps are required to correctly import the AMD module.
+
+1. Install parameter-validator using `npm` as specified above.
+2. Install the [ember-cli-node-modules-to-vendor](`https://www.npmjs.com/package/ember-cli-node-modules-to-vendor`) addon, which copies specific node modules to your `vendor` directory so that they can be imported.
+3. Add the following lines to `ember-cli-build.js`:
+
+```js
+let app = new EmberApp(defaults, {
+    // Instructs the ember-cli-node-modules-to-vendor addon to copy this module to `/vendor`
+    nodeModulesToVendor: [
+        'node_modules/parameter-validator/dist/amd'
+    ]
+});
+
+// Instructs the app to import the AMD module so that you can import it in your code.
+app.import('vendor/ParameterValidator.js', {
+    using: [
+        { transformation: 'amd', as: 'parameter-validator' }
+    ]
+});
+```
 
 ## Development
 
